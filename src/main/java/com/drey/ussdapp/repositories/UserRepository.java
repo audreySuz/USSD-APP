@@ -12,6 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByPhoneNumber(String phoneNumber);
     Optional<User> findByPublicId(UUID publicId);
     Optional<User> findByPin(String pin);
-
-
+    boolean existsByPhoneNumber(String phoneNumber);
 }

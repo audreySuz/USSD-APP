@@ -1,7 +1,7 @@
 package com.drey.ussdapp.utils;
 
 import com.drey.ussdapp.exceptions.ForbiddenException;
-import com.nimbusds.oauth2.sdk.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

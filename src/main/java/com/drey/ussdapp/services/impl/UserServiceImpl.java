@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -31,6 +32,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public AppResponse createUser(CreateUserDto createUserDto, String authKey) {
         adminAuthKeyValidator.validateAdminAuthKey(authKey);
+
+        if (userRepository.existsByPhoneNumber(createUserDto.getPhoneNumber())) {
+            throw new RuntimeException("User with phone number already exists");
+        }
+
         createUserDto.setPublicId(UUID.randomUUID());
         User savedUser = userRepository.save(UserModelHelper.toEntity(createUserDto));
         return new AppResponse(HttpStatus.CREATED.value(), "User created successfully", null, savedUser, null);
@@ -52,7 +58,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
         UserResponseDto userResponseDto = UserModelHelper.toDto(user);
         return new AppResponse(HttpStatus.OK.value(), "User found successfully", null, userResponseDto, null);
-
     }
 
     private User getUserByPin(String pin) {
@@ -63,6 +68,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public AppResponse deposit(String pin, double amount, String authKey) {
         adminAuthKeyValidator.validateUserAuthKey(authKey);
+
+        if (amount <= 0) {
+            throw new RuntimeException("Invalid amount for deposit");
+        }
+
         User user = getUserByPin(pin);
         user.setBalance(user.getBalance() + amount);
         User savedUser = userRepository.save(user);
@@ -73,6 +83,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public AppResponse withdraw(String pin, double amount, String authKey) {
         adminAuthKeyValidator.validateUserAuthKey(authKey);
+
+        if (amount <= 0) {
+            throw new RuntimeException("Invalid amount for withdrawal");
+        }
+
         User user = getUserByPin(pin);
         if (user.getBalance() < amount) {
             throw new InsufficientBalanceException("Insufficient balance");
@@ -89,7 +104,6 @@ public class UserServiceImpl implements UserService {
         Double balance = getUserByPin(pin).getBalance();
         return new AppResponse(HttpStatus.OK.value(), "Balance fetched successfully", null, balance, null);
     }
-
 
     private void saveTransaction(User user, String type, double amount) {
         Transaction transaction = new Transaction();
